@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediScan Compare</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>⚖️ Medicine Comparison</h1>
+    <p class="subtitle">Compare 2 medicines using Database + Groq AI</p>
+
+    <div class="top-links">
+      <a class="link-btn" href="/">🏠 Home</a>
+      <a class="link-btn" href="/dashboard">📊 Dashboard</a>
+      <button id="themeBtn" class="link-btn">🌙 Theme</button>
+    </div>
+
+    <div class="card">
+      <label>Enter Medicine A and Medicine B:</label>
+
+      <div class="compare-grid">
+        <input id="medicineA" placeholder="Medicine A (ex: Paracetamol)" />
+        <input id="medicineB" placeholder="Medicine B (ex: Ibuprofen)" />
+      </div>
+
+      <button id="compareBtn">Compare</button>
+
+      <div class="status-row">
+        <div id="loader" class="loader hidden"></div>
+        <p id="status"></p>
+      </div>
+    </div>
+
+    <div id="compareResult" class="result hidden">
+      <div class="history-card">
+        <h3>📌 Comparison Summary</h3>
+        <div id="comparisonTable"></div>
+      </div>
+
+      <div class="ai-box" id="verdictBox">
+        <h3>🤖 AI Verdict</h3>
+        <p id="verdictSummary"></p>
+        <p><b>Safer for stomach:</b> <span id="saferStomach"></span></p>
+        <ul id="differences"></ul>
+        <p class="disclaimer" id="verdictWarning"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+
+  <script>
+    const compareBtn = document.getElementById("compareBtn");
+    const medA = document.getElementById("medicineA");
+    const medB = document.getElementById("medicineB");
+
+    const statusText = document.getElementById("status");
+    const loader = document.getElementById("loader");
+
+    const compareResult = document.getElementById("compareResult");
+    const comparisonTable = document.getElementById("comparisonTable");
+
+    const verdictSummary = document.getElementById("verdictSummary");
+    const saferStomach = document.getElementById("saferStomach");
+    const differences = document.getElementById("differences");
+    const verdictWarning = document.getElementById("verdictWarning");
+
+    function setStatus(msg, ok = true){
+      statusText.textContent = msg;
+      statusText.style.color = ok ? "#9fffa8" : "#ff9f9f";
+    }
+
+    function setLoading(val){
+      if(val){
+        loader.classList.remove("hidden");
+        compareBtn.disabled = true;
+      } else {
+        loader.classList.add("hidden");
+        compareBtn.disabled = false;
+      }
+    }
+
+    function safeList(items){
+      if(!items || !Array.isArray(items)) return "-";
+      return "<ul>" + items.map(x => `<li>${x}</li>`).join("") + "</ul>";
+    }
+
+    compareBtn.addEventListener("click", async () => {
+      compareResult.classList.add("hidden");
+
+      const a = medA.value.trim();
+      const b = medB.value.trim();
+
+      if(!a || !b){
+        setStatus("❌ Please enter both medicine names.", false);
+        return;
+      }
+
+      setLoading(true);
+      setStatus("⏳ Comparing medicines using Groq AI...");
+
+      try{
+        const res = await fetch("/api/compare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ medicineA: a, medicineB: b })
+        });
+
+        const data = await res.json();
+
+        if(!data.success){
+          setStatus("❌ " + data.error, false);
+          setLoading(false);
+          return;
+        }
+
+        const A = data.medicineA;
+        const B = data.medicineB;
+
+        comparisonTable.innerHTML = `
+          <div class="compare-table">
+            <div class="compare-head">
+              <div><b>Field</b></div>
+              <div><b>${A.name.toUpperCase()}</b><br><span class="mini">${A.source}</span></div>
+              <div><b>${B.name.toUpperCase()}</b><br><span class="mini">${B.source}</span></div>
+            </div>
+
+            <div class="compare-row">
+              <div><b>Generic Name</b></div>
+              <div>${A.data.generic_name || "-"}</div>
+              <div>${B.data.generic_name || "-"}</div>
+            </div>
+
+            <div class="compare-row">
+              <div><b>Use</b></div>
+              <div>${A.data.use || "-"}</div>
+              <div>${B.data.use || "-"}</div>
+            </div>
+
+            <div class="compare-row">
+              <div><b>Dosage</b></div>
+              <div>${A.data.dosage || "-"}</div>
+              <div>${B.data.dosage || "-"}</div>
+            </div>
+
+            <div class="compare-row">
+              <div><b>Side Effects</b></div>
+              <div>${safeList(A.data.side_effects)}</div>
+              <div>${safeList(B.data.side_effects)}</div>
+            </div>
+
+            <div class="compare-row">
+              <div><b>Warnings</b></div>
+              <div>${safeList(A.data.warnings)}</div>
+              <div>${safeList(B.data.warnings)}</div>
+            </div>
+          </div>
+        `;
+
+        // Verdict
+        const v = data.verdict;
+        if(v){
+          verdictSummary.textContent = v.summary || "-";
+          saferStomach.textContent = v.safer_for_stomach || "depends";
+
+          differences.innerHTML = "";
+          (v.key_differences || []).forEach(d => {
+            const li = document.createElement("li");
+            li.textContent = d;
+            differences.appendChild(li);
+          });
+
+          verdictWarning.textContent = v.warning || "Educational only. Consult doctor.";
+        }
+
+        compareResult.classList.remove("hidden");
+        setStatus("✅ Comparison ready!");
+        setLoading(false);
+
+      }catch(err){
+        console.log(err);
+        setStatus("❌ Server error. Try again.", false);
+        setLoading(false);
+      }
+    });
+    
+  </script>
+</body>
+</html>

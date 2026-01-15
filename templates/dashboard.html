@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediScan Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Analytics Dashboard</h1>
+    <p class="subtitle">Top searched medicines (local analytics)</p>
+
+    <div class="top-links">
+      <a class="link-btn" href="/">⬅ Back to Home</a>
+      <a class="link-btn" href="/compare">⚖️ Compare</a>
+      <button id="themeBtn" class="link-btn">🌙 Theme</button>
+    </div>
+
+    <div class="history-card">
+      <div class="card-head">
+        <h3>🔥 Top 10 Searches</h3>
+        <button id="clearAnalyticsBtn" class="danger small-btn">🗑 Clear Analytics</button>
+      </div>
+
+      <div id="topList" class="analytics-list">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Analytics Script (No alert, No confirm) -->
+  <script>
+    const topList = document.getElementById("topList");
+    const clearBtn = document.getElementById("clearAnalyticsBtn");
+
+    function setBox(msg){
+      topList.innerHTML = `<div class="analytics-row">${msg}</div>`;
+    }
+
+    async function loadAnalytics(){
+      try{
+        const res = await fetch("/api/analytics");
+        const data = await res.json();
+
+        if(!data.success){
+          setBox("❌ Failed to load analytics");
+          return;
+        }
+
+        const top = data.top || [];
+        if(top.length === 0){
+          setBox("No analytics yet.");
+          return;
+        }
+
+        topList.innerHTML = "";
+        top.forEach((item, idx) => {
+          const row = document.createElement("div");
+          row.className = "analytics-row";
+          row.innerHTML = `<b>#${idx+1}</b> ${item[0]} <span>${item[1]} searches</span>`;
+          topList.appendChild(row);
+        });
+      }catch(err){
+        setBox("❌ Error loading analytics");
+      }
+    }
+
+    // ✅ Clear analytics without popups
+    clearBtn.addEventListener("click", async () => {
+      clearBtn.disabled = true;
+      setBox("⏳ Clearing analytics...");
+
+      try{
+        const res = await fetch("/api/analytics/clear", { method: "POST" });
+        const data = await res.json();
+
+        if(data.success){
+          setBox("✅ Analytics cleared!");
+          setTimeout(loadAnalytics, 700);
+        } else {
+          setBox("❌ Failed to clear analytics.");
+        }
+      }catch(err){
+        setBox("❌ Server error.");
+      }
+
+      clearBtn.disabled = false;
+    });
+
+    loadAnalytics();
+    
+  </script>
+
+  <!-- Theme Script -->
+  <script src="/static/js/theme.js"></script>
+</body>
+</html>

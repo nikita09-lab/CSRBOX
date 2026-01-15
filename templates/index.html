@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediScan AI</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>💊 MediScan AI</h1>
+    <p class="subtitle">Medicine Info + Side Effects Checker (SDG 3) using Groq</p>
+
+    <div class="top-links">
+      <a class="link-btn" href="/dashboard">📊 Analytics Dashboard</a>
+      <a class="link-btn" href="/compare">⚖️ Compare</a>
+      <a class="link-btn" href="/interaction">🧪 Interaction</a>
+      <a class="link-btn" href="/assistant">🤖 Assistant</a>
+      <button id="themeBtn" class="link-btn">🌙 Theme</button>
+    </div>
+
+
+    <div class="card">
+      <label for="medicineInput">Enter medicine name:</label>
+
+      <input list="medicineList" type="text" id="medicineInput" placeholder="Example: Paracetamol" />
+      <datalist id="medicineList"></datalist>
+
+      <div class="row">
+        <button id="checkBtn">Check Medicine</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+      </div>
+
+      <div class="status-row">
+        <div id="loader" class="loader hidden"></div>
+        <p id="status"></p>
+      </div>
+    </div>
+
+    <div class="history-card">
+      <div class="card-head">
+        <h3>🕒 Recent Searches</h3>
+        <button id="clearHistoryBtn" class="danger small-btn">🗑 Clear</button>
+      </div>
+
+      <div id="historyList" class="history-list">Loading...</div>
+    </div>
+
+
+    <div class="history-card">
+      <div class="card-head">
+        <h3>⭐ Favorites</h3>
+        <button id="clearFavoritesBtn" class="danger small-btn">🗑 Clear</button>
+      </div>
+      <div id="favoritesList" class="history-list">Loading...</div>
+    </div>
+
+
+    <div id="result" class="result hidden">
+      <div class="result-head">
+        <h2 id="medTitle"></h2>
+        <span id="sourceBadge" class="badge">Source</span>
+      </div>
+
+      <p id="note"></p>
+
+      <div class="grid">
+        <div class="box">
+          <h3>✅ Use</h3>
+          <p id="use"></p>
+        </div>
+
+        <div class="box">
+          <h3>📌 Dosage</h3>
+          <p id="dosage"></p>
+        </div>
+
+        <div class="box">
+          <h3>⚠️ Side Effects</h3>
+          <ul id="sideEffects"></ul>
+        </div>
+
+        <div class="box">
+          <h3>🚨 Warnings</h3>
+          <ul id="warnings"></ul>
+        </div>
+      </div>
+
+      <div class="ai-box">
+        <h3>🤖 AI Summary</h3>
+        <p id="aiSummary"></p>
+      </div>
+
+      <div class="actions">
+        <button id="copyBtn" class="secondary">📋 Copy Result</button>
+        <button id="favBtn">⭐ Add Favorite</button>
+        <button id="pdfBtn">⬇️ Download PDF</button>
+        <button id="shareBtn" class="secondary">📤 Share</button>
+      </div>
+
+      <p class="disclaimer">
+        ⚠️ Disclaimer: This is an educational project. Not medical advice. Always consult a doctor.
+      </p>
+    </div>
+  </div>
+  
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

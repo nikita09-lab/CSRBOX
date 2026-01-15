@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediScan AI Assistant</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 MediScan AI Assistant</h1>
+    <p class="subtitle">Ask anything (Medicine, Health tips, First aid) — Powered by Groq</p>
+
+    <div class="top-links">
+      <a class="link-btn" href="/">🏠 Home</a>
+      <a class="link-btn" href="/compare">⚖️ Compare</a>
+      <a class="link-btn" href="/interaction">🧪 Interaction</a>
+      <a class="link-btn" href="/dashboard">📊 Dashboard</a>
+      <button id="themeBtn" class="link-btn">🌙 Theme</button>
+    </div>
+
+    <div class="history-card">
+      <div class="chat-box" id="chatBox"></div>
+
+      <div class="chat-input-area">
+        <input id="chatInput" placeholder="Ask any question..." />
+        <button id="sendBtn">Send</button>
+      </div>
+
+      <div class="status-row">
+        <div id="loader" class="loader hidden"></div>
+        <p id="status"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const loader = document.getElementById("loader");
+    const statusText = document.getElementById("status");
+
+    function setStatus(msg, ok=true){
+      statusText.textContent = msg;
+      statusText.style.color = ok ? "#9fffa8" : "#ff9f9f";
+    }
+
+    function setLoading(val){
+      if(val){
+        loader.classList.remove("hidden");
+        sendBtn.disabled = true;
+      } else {
+        loader.classList.add("hidden");
+        sendBtn.disabled = false;
+      }
+    }
+
+    function addMessage(role, text){
+      const msg = document.createElement("div");
+      msg.className = role === "user" ? "msg user-msg" : "msg bot-msg";
+      msg.innerHTML = `<b>${role === "user" ? "You" : "MediScan AI"}:</b> <span>${text}</span>`;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage(){
+      const q = chatInput.value.trim();
+      if(!q){
+        setStatus("❌ Type a message first.", false);
+        return;
+      }
+
+      addMessage("user", q);
+      chatInput.value = "";
+      setLoading(true);
+      setStatus("⏳ Thinking...");
+
+      try{
+        const res = await fetch("/api/assistant", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ query: q })
+        });
+
+        const data = await res.json();
+
+        if(!data.success){
+          setStatus("❌ " + data.error, false);
+          setLoading(false);
+          return;
+        }
+
+        addMessage("assistant", data.answer);
+        setStatus("✅ Done");
+        setLoading(false);
+
+      }catch(err){
+        setStatus("❌ Server error.", false);
+        setLoading(false);
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") sendMessage();
+    });
+
+    // Welcome message
+    addMessage("assistant", "Hi! 👋 Ask me anything about medicines, side effects, first aid, healthy habits, etc. (Educational only).");
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "paracetamol": {
+    "generic_name": "Paracetamol (Acetaminophen)",
+    "use": "Fever and mild to moderate pain (headache, body pain).",
+    "dosage": "Adults: 500mg–650mg every 4–6 hours if needed (max 3000mg/day unless doctor says).",
+    "side_effects": [
+      "Nausea",
+      "Stomach upset",
+      "Allergic reaction (rare)",
+      "Liver damage if overdose"
+    ],
+    "warnings": [
+      "Do not exceed maximum daily dose",
+      "Avoid alcohol",
+      "People with liver disease should consult doctor"
+    ]
+  },
+  "ibuprofen": {
+    "generic_name": "Ibuprofen",
+    "use": "Pain, inflammation, fever (body pain, swelling, toothache).",
+    "dosage": "Adults: 200mg–400mg every 6–8 hours (max 1200mg/day OTC).",
+    "side_effects": [
+      "Stomach pain",
+      "Acidity",
+      "Nausea",
+      "Dizziness",
+      "Risk of gastric bleeding (long use)"
+    ],
+    "warnings": [
+      "Avoid if you have ulcers or gastric bleeding",
+      "Take after food",
+      "Avoid in kidney disease (doctor advice needed)"
+    ]
+  },
+  "cetirizine": {
+    "generic_name": "Cetirizine",
+    "use": "Allergy relief (sneezing, itching, watery eyes).",
+    "dosage": "Adults: 10mg once daily.",
+    "side_effects": [
+      "Drowsiness",
+      "Dry mouth",
+      "Fatigue"
+    ],
+    "warnings": [
+      "Avoid driving if sleepy",
+      "Consult doctor if pregnant or breastfeeding"
+    ]
+  },
+  "omeprazole": {
+    "generic_name": "Omeprazole",
+    "use": "Acidity, GERD, stomach ulcers.",
+    "dosage": "Adults: 20mg once daily before food (as prescribed).",
+    "side_effects": [
+      "Headache",
+      "Nausea",
+      "Abdominal pain",
+      "Bloating"
+    ],
+    "warnings": [
+      "Do not use long-term without doctor",
+      "May reduce absorption of vitamins/minerals if overused"
+    ]
+  }
+}

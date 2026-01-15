@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediScan Interaction Checker</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Interaction Checker</h1>
+    <p class="subtitle">Check possible medicine interactions using Groq AI (Educational)</p>
+
+    <div class="top-links">
+      <a class="link-btn" href="/">🏠 Home</a>
+      <a class="link-btn" href="/compare">⚖️ Compare</a>
+      <a class="link-btn" href="/dashboard">📊 Dashboard</a>
+      <button id="themeBtn" class="link-btn">🌙 Theme</button>
+    </div>
+
+    <div class="card">
+      <label>Enter 2 medicines:</label>
+
+      <div class="compare-grid">
+        <input id="medicineA" placeholder="Medicine A (ex: Ibuprofen)" />
+        <input id="medicineB" placeholder="Medicine B (ex: Warfarin)" />
+      </div>
+
+      <button id="checkInteractionBtn">Check Interaction</button>
+
+      <div class="status-row">
+        <div id="loader" class="loader hidden"></div>
+        <p id="status"></p>
+      </div>
+    </div>
+
+    <div id="result" class="result hidden">
+      <div class="history-card">
+        <div class="result-head">
+          <h2>📌 Interaction Result</h2>
+          <span id="riskBadge" class="badge">Risk</span>
+        </div>
+
+        <p id="summary" style="margin-top:12px;"></p>
+
+        <div class="grid" style="margin-top: 14px;">
+          <div class="box">
+            <h3>🚫 What to Avoid</h3>
+            <ul id="avoidList"></ul>
+          </div>
+
+          <div class="box">
+            <h3>⚠️ Warning Signs</h3>
+            <ul id="signsList"></ul>
+          </div>
+        </div>
+
+        <div class="ai-box" style="margin-top: 14px;">
+          <h3>✅ Final Note</h3>
+          <p id="finalNote"></p>
+        </div>
+
+        <p class="disclaimer">
+          ⚠️ Educational only. Consult a doctor/pharmacist for safe decisions.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+
+  <script>
+    const btn = document.getElementById("checkInteractionBtn");
+    const loader = document.getElementById("loader");
+    const statusText = document.getElementById("status");
+
+    const medA = document.getElementById("medicineA");
+    const medB = document.getElementById("medicineB");
+
+    const result = document.getElementById("result");
+    const riskBadge = document.getElementById("riskBadge");
+    const summary = document.getElementById("summary");
+    const avoidList = document.getElementById("avoidList");
+    const signsList = document.getElementById("signsList");
+    const finalNote = document.getElementById("finalNote");
+
+    function setStatus(msg, ok=true){
+      statusText.textContent = msg;
+      statusText.style.color = ok ? "#9fffa8" : "#ff9f9f";
+    }
+
+    function setLoading(val){
+      if(val){
+        loader.classList.remove("hidden");
+        btn.disabled = true;
+      } else {
+        loader.classList.add("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    function fillList(el, items){
+      el.innerHTML = "";
+      if(!items || items.length === 0){
+        const li = document.createElement("li");
+        li.textContent = "Not available.";
+        el.appendChild(li);
+        return;
+      }
+      items.forEach(i=>{
+        const li = document.createElement("li");
+        li.textContent = i;
+        el.appendChild(li);
+      });
+    }
+
+    function setRiskBadge(risk){
+      const r = (risk || "unknown").toLowerCase();
+      riskBadge.textContent = "Risk: " + r.toUpperCase();
+
+      if(r === "high"){
+        riskBadge.style.background = "rgba(255, 60, 60, 0.18)";
+        riskBadge.style.border = "1px solid rgba(255, 60, 60, 0.35)";
+      } else if(r === "medium"){
+        riskBadge.style.background = "rgba(255, 180, 60, 0.18)";
+        riskBadge.style.border = "1px solid rgba(255, 180, 60, 0.35)";
+      } else if(r === "low"){
+        riskBadge.style.background = "rgba(80, 255, 160, 0.16)";
+        riskBadge.style.border = "1px solid rgba(80, 255, 160, 0.30)";
+      } else {
+        riskBadge.style.background = "rgba(255, 255, 255, 0.12)";
+        riskBadge.style.border = "1px solid rgba(255, 255, 255, 0.14)";
+      }
+    }
+
+    btn.addEventListener("click", async ()=>{
+      result.classList.add("hidden");
+
+      const a = medA.value.trim();
+      const b = medB.value.trim();
+
+      if(!a || !b){
+        setStatus("❌ Please enter both medicine names.", false);
+        return;
+      }
+
+      setLoading(true);
+      setStatus("⏳ Checking interaction using Groq AI...");
+
+      try{
+        const res = await fetch("/api/interaction",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ medicineA:a, medicineB:b })
+        });
+
+        const data = await res.json();
+        if(!data.success){
+          setStatus("❌ " + data.error, false);
+          setLoading(false);
+          return;
+        }
+
+        const out = data.data;
+
+        setRiskBadge(out.risk_level);
+        summary.textContent = out.interaction_summary || "-";
+        fillList(avoidList, out.what_to_avoid || []);
+        fillList(signsList, out.warning_signs || []);
+        finalNote.textContent = out.final_note || "Consult doctor/pharmacist.";
+
+        result.classList.remove("hidden");
+        setStatus("✅ Interaction result ready!");
+        setLoading(false);
+
+      }catch(err){
+        setStatus("❌ Server error. Try again.", false);
+        setLoading(false);
+      }
+    });
+    
+  </script>
+</body>
+</html>
